@@ -10,7 +10,7 @@ const RUB = "RUB"
 
 type conversionRateMap = map[string]float64
 
-func getConverterInput(rates conversionRateMap) (sourceAmount float64, sourceCurrency string, targetCurrency string, err error) {
+func getConverterInput(rates *conversionRateMap) (sourceAmount float64, sourceCurrency string, targetCurrency string, err error) {
 
 	for {
 		fmt.Print("Введите исходную валюту")
@@ -43,22 +43,22 @@ func getConverterInput(rates conversionRateMap) (sourceAmount float64, sourceCur
 	return
 }
 
-func getCurrency(currencies conversionRateMap, excludedCurrency string) (input string, err error) {
+func getCurrency(currencies *conversionRateMap, excludedCurrency string) (input string, err error) {
 	fmt.Printf("(%s): ", getCurrencyListString(currencies, excludedCurrency))
 	_, err = fmt.Scan(&input)
 	if err != nil {
 		return
 	}
-	_, exists := currencies[input]
+	_, exists := (*currencies)[input]
 	if !exists || input == excludedCurrency {
 		err = fmt.Errorf("ошибочный код валюты %s", input)
 	}
 	return
 }
 
-func getCurrencyListString(currencies conversionRateMap, excludedCurrency string) (result string) {
+func getCurrencyListString(currencies *conversionRateMap, excludedCurrency string) (result string) {
 	first := true
-	for currency := range currencies {
+	for currency := range *currencies {
 		if currency != excludedCurrency {
 			if first {
 				first = false
@@ -72,13 +72,13 @@ func getCurrencyListString(currencies conversionRateMap, excludedCurrency string
 	return
 }
 
-func convertCurrency(sourceAmount float64, sourceCurrency string, targetCurrency string, usdRates conversionRateMap) (targetAmount float64, err error) {
-	rate1, ok := usdRates[sourceCurrency]
+func convertCurrency(sourceAmount float64, sourceCurrency string, targetCurrency string, usdRates *conversionRateMap) (targetAmount float64, err error) {
+	rate1, ok := (*usdRates)[sourceCurrency]
 	if !ok {
 		err = conversionError(sourceCurrency, targetCurrency)
 		return
 	}
-	rate2, ok := usdRates[targetCurrency]
+	rate2, ok := (*usdRates)[targetCurrency]
 	if !ok {
 		err = conversionError(sourceCurrency, targetCurrency)
 		return
@@ -100,9 +100,9 @@ func main() {
 	}
 	for {
 
-		sourceamount, sourceCurrency, targetCurrency, err := getConverterInput(usdRates)
+		sourceamount, sourceCurrency, targetCurrency, err := getConverterInput(&usdRates)
 		if err == nil {
-			convertedAmount, err := convertCurrency(sourceamount, sourceCurrency, targetCurrency, usdRates)
+			convertedAmount, err := convertCurrency(sourceamount, sourceCurrency, targetCurrency, &usdRates)
 			if err != nil {
 				fmt.Printf("Ошбика ковертации: %v", err)
 			} else {
