@@ -7,22 +7,35 @@ import (
 	"os"
 )
 
-const storage = "./storage.json"
+type Storage struct {
+	provider Provider
+}
 
-func Save(binList bins.BinList) error {
+type Provider interface {
+	Read() ([]byte, error)
+	Write([]byte) error
+}
+
+func NewStorage(provider Provider) *Storage {
+	return &Storage{
+		provider: provider,
+	}
+}
+
+func (storage *Storage) Save(binList bins.BinList) error {
 	content, err := json.Marshal(binList)
 	if err != nil {
 		return fmt.Errorf("ошибка сериализации: %v", err)
 	}
-	err = os.WriteFile(storage, content, os.FileMode(0660))
+	err = storage.provider.Write(content)
 	if err != nil {
 		return fmt.Errorf("ошибка сохранения: %v", err)
 	}
 	return nil
 }
 
-func Load() (binList bins.BinList, err error) {
-	content, err := os.ReadFile(storage)
+func (storage *Storage) Load() (binList bins.BinList, err error) {
+	content, err := storage.provider.Read()
 	if os.IsNotExist(err) {
 		binListRef, errbin := bins.NewBinList([]bins.Bin{})
 		if errbin != nil {
