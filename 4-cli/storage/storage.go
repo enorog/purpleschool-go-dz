@@ -22,7 +22,7 @@ func NewStorage(provider Provider) *Storage {
 	}
 }
 
-func (storage *Storage) Save(binList bins.BinList) error {
+func (storage *Storage) Save(binList *bins.BinList) error {
 	content, err := json.Marshal(binList)
 	if err != nil {
 		return fmt.Errorf("ошибка сериализации: %v", err)
@@ -34,15 +34,13 @@ func (storage *Storage) Save(binList bins.BinList) error {
 	return nil
 }
 
-func (storage *Storage) Load() (binList bins.BinList, err error) {
+func (storage *Storage) Load() (binList *bins.BinList, err error) {
 	content, err := storage.provider.Read()
 	if os.IsNotExist(err) {
-		binListRef, errbin := bins.NewBinList([]bins.Bin{})
-		if errbin != nil {
-			err = errbin
+		binList, err = bins.NewBinList([]bins.Bin{})
+		if err != nil {
 			return
 		}
-		binList = *binListRef
 	} else if err != nil {
 		err = fmt.Errorf("ошибка чтения из хранилища: %v", err)
 		return
