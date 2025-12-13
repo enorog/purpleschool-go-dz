@@ -6,6 +6,7 @@ import (
 	"cli/bins"
 	"fmt"
 	"os"
+	"strings"
 )
 
 type Operations struct {
@@ -20,20 +21,20 @@ func NewOperation(api *api.JsonBin, binList *bins.BinList) *Operations {
 	}
 }
 
-func (operations *Operations) Create(path string, name string) error {
+func (operations *Operations) Create(path string, name string) (string, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return "", err
 	}
 	bin, err := operations.api.Create(name, bytes.NewBuffer(content))
 	if err != nil {
-		return err
+		return "", err
 	}
 	operations.binList.Bins = append(operations.binList.Bins, *bin)
-	return nil
+	return bin.Id, nil
 }
 
-func (operations *Operations) Update(path string, id string) error {
+func (operations *Operations) Update(path string, id string) (string, error) {
 	found := false
 	for _, bin := range operations.binList.Bins {
 		if bin.Id == id {
@@ -42,20 +43,20 @@ func (operations *Operations) Update(path string, id string) error {
 		}
 	}
 	if !found {
-		return fmt.Errorf("bin с id=%s не найден", id)
+		return "", fmt.Errorf("bin с id=%s не найден", id)
 	}
 	content, err := os.ReadFile(path)
 	if err != nil {
-		return err
+		return "", err
 	}
 	err = operations.api.Update(id, bytes.NewBuffer(content))
 	if err != nil {
-		return err
+		return "", err
 	}
-	return nil
+	return id, nil
 }
 
-func (operations *Operations) Delete(id string) error {
+func (operations *Operations) Delete(id string) (string, error) {
 	index := -1
 	for idx, bin := range operations.binList.Bins {
 		if bin.Id == id {
@@ -64,32 +65,32 @@ func (operations *Operations) Delete(id string) error {
 		}
 	}
 	if index < 0 {
-		return fmt.Errorf("bin с id=%s не найден", id)
+		return "", fmt.Errorf("bin с id=%s не найден", id)
 	}
 	err := operations.api.Delete(id)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if index == len(operations.binList.Bins[:index])-1 {
 		operations.binList.Bins = operations.binList.Bins[:index]
 	} else {
 		operations.binList.Bins = append(operations.binList.Bins[:index], operations.binList.Bins[index+1:]...)
 	}
-	return nil
+	return "", nil
 }
 
-func (operations *Operations) Get(id string) error {
+func (operations *Operations) Get(id string) (string, error) {
 	content, err := operations.api.Get(id)
 	if err != nil {
-		return err
+		return "", err
 	}
-	fmt.Print(string(content))
-	return nil
+	return string(content), nil
 }
 
-func (operations *Operations) List() error {
+func (operations *Operations) List() (string, error) {
+	builder := strings.Builder{}
 	for _, bin := range operations.binList.Bins {
-		fmt.Printf("%s %s\n", bin.Name, bin.Id)
+		builder.WriteString(fmt.Sprintf("%s %s\n", bin.Name, bin.Id))
 	}
-	return nil
+	return builder.String(), nil
 }

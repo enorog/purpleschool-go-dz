@@ -38,9 +38,7 @@ func (storage *Storage) Load() (binList *bins.BinList, err error) {
 	content, err := storage.provider.Read()
 	if os.IsNotExist(err) {
 		binList, err = bins.NewBinList([]bins.Bin{})
-		if err != nil {
-			return
-		}
+		return
 	} else if err != nil {
 		err = fmt.Errorf("ошибка чтения из хранилища: %v", err)
 		return
