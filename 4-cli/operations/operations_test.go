@@ -88,6 +88,25 @@ func TestUpdate(t *testing.T) {
 	os.Remove(storagePath)
 }
 
+func TestDelete(t *testing.T) {
+	ops := getOperations(storagePath)
+	createBin(binPath)
+
+	id, err := ops.Create(binPath, "test")
+	if err != nil {
+		panic(err)
+	}
+
+	id, err = ops.Delete(id)
+	if err != nil {
+		t.Errorf("Delete(\"%s\"): ожидался успех, получили %v", id, err)
+	} else if id == "" {
+		t.Errorf("Delete(\"%s\"): ожидалcя непустой id", id)
+	}
+	os.Remove(binPath)
+	os.Remove(storagePath)
+}
+
 func TestGet(t *testing.T) {
 	ops := getOperations(storagePath)
 	expectedBinContent := createBin(binPath)

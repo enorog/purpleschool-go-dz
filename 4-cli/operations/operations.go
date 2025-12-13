@@ -76,7 +76,7 @@ func (operations *Operations) Delete(id string) (string, error) {
 	} else {
 		operations.binList.Bins = append(operations.binList.Bins[:index], operations.binList.Bins[index+1:]...)
 	}
-	return "", nil
+	return id, nil
 }
 
 func (operations *Operations) Get(id string) (string, error) {
